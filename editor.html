@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALP Syllabus Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:#f2f4f2;color:#1c1c1c;font-size:16px;line-height:1.5}
+  header{background:#0B6B3A;color:#fff;padding:16px 16px 12px}
+  header h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;font-size:13px;opacity:.92}
+  main{max-width:860px;margin:0 auto;padding:12px 12px 110px}
+  .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px;margin:12px 0}
+  .tabs{display:flex;gap:8px;margin:12px 0 4px;flex-wrap:wrap}
+  .tabs button{flex:1;min-width:90px;padding:11px 8px;border-radius:10px;border:1px solid #0B6B3A;background:#fff;color:#0B6B3A;font-size:15px;font-weight:700;cursor:pointer}
+  .tabs button.active{background:#0B6B3A;color:#fff}
+  label{display:block;font-size:13px;font-weight:700;margin:12px 0 4px;color:#333}
+  input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:11px 10px;border:1px solid #bbb;border-radius:9px;font-size:16px;font-family:inherit;background:#fff}
+  textarea{min-height:90px;resize:vertical}
+  textarea.tall{min-height:170px}
+  .hint{font-size:13px;color:#555;margin:4px 0 0}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:140px}
+  .btn{display:block;width:100%;padding:14px;border-radius:11px;border:0;font-size:16px;font-weight:700;cursor:pointer;margin:8px 0}
+  .btn-green{background:#0B6B3A;color:#fff}
+  .btn-outline{background:#fff;color:#0B6B3A;border:2px solid #0B6B3A}
+  .btn-grey{background:#e8e8e8;color:#222}
+  .btn-danger{background:#fff;color:#b00020;border:2px solid #b00020}
+  .btn-small{width:auto;display:inline-block;padding:9px 14px;font-size:14px;margin:4px 4px 4px 0}
+  .pill{display:inline-block;background:#e6f2ea;color:#0B6B3A;border-radius:20px;padding:4px 10px;font-size:13px;font-weight:700;margin:2px 4px 2px 0}
+  .pill.warn{background:#fff3cd;color:#7a5b00}
+  .status{padding:11px 12px;border-radius:10px;font-size:14px;margin:10px 0;display:none}
+  .status.ok{display:block;background:#e6f4ea;color:#14532d;border:1px solid #a8d5b5}
+  .status.err{display:block;background:#fdecea;color:#7a1010;border:1px solid #f5b5b5}
+  .status.info{display:block;background:#e8f0fe;color:#174ea6;border:1px solid #b6cdf5}
+  .ur{font-family:"Noto Nastaliq Urdu",system-ui,sans-serif;direction:rtl;text-align:right;line-height:2}
+  input.ur,textarea.ur{line-height:2}
+  .subhead{font-size:17px;font-weight:800;margin:6px 0}
+  .muted{color:#555;font-size:14px}
+  .update-card{border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0;background:#fbfbfb}
+  .topbar{position:sticky;top:0;z-index:5;background:#f2f4f2;padding:8px 0}
+  .stickybar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ccc;padding:10px 12px;z-index:10}
+  .stickybar-inner{max-width:860px;margin:0 auto;display:flex;gap:10px}
+  .stickybar-inner .btn{margin:0}
+  .hidden{display:none}
+  .tokrow{display:flex;gap:8px}
+  .tokrow input{flex:1}
+  .tokrow button{white-space:nowrap}
+  code{background:#eee;padding:1px 5px;border-radius:5px;font-size:13px}
+  details{margin:8px 0}
+  summary{font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>ALP Syllabus Editor</h1>
+  <p>Edit <code>syllabus.json</code> for the ALP Smart Syllabus app. No new APK needed, the app picks up changes from GitHub.</p>
+</header>
+
+<main>
+  <div id="status" class="status"></div>
+
+  <!-- SETTINGS -->
+  <div class="card">
+    <div class="subhead">1. GitHub settings</div>
+    <p class="muted" style="margin:0">These are already filled in for your repo. The token is saved only in this browser, never in this file and never sent anywhere except to GitHub.</p>
+    <div class="row">
+      <div><label>Owner</label><input type="text" id="ghOwner" value="iamshehzadali"></div>
+      <div><label>Repo</label><input type="text" id="ghRepo" value="alp-syllabus"></div>
+    </div>
+    <div class="row">
+      <div><label>Branch</label><input type="text" id="ghBranch" value="main"></div>
+      <div><label>File path</label><input type="text" id="ghPath" value="syllabus.json"></div>
+    </div>
+    <label>GitHub token (fine-grained, this repo only, Contents: Read and write)</label>
+    <div class="tokrow">
+      <input type="password" id="ghToken" placeholder="Paste token here" autocomplete="off">
+      <button class="btn btn-grey btn-small" type="button" id="showTokenBtn">Show</button>
+    </div>
+    <p class="hint">No token? You can still edit and use <b>Download file</b> below, then upload it to GitHub yourself. How to make a token: GitHub &gt; Settings &gt; Developer settings &gt; Personal access tokens &gt; Fine-grained tokens &gt; Generate new token, select only the <code>alp-syllabus</code> repo, Contents Read and write, expiry 90 days.</p>
+    <div class="row">
+      <button class="btn btn-green" type="button" id="loadBtn">Load from GitHub</button>
+      <button class="btn btn-outline" type="button" id="loadFileBtn">Open a file from my phone</button>
+    </div>
+    <input type="file" id="fileInput" accept=".json,application/json" class="hidden">
+    <div id="loadedInfo" class="muted"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="topbar"><div class="tabs">
+    <button type="button" data-tab="syllabus" class="active">Syllabus</button>
+    <button type="button" data-tab="updates">Important Updates</button>
+    <button type="button" data-tab="meta">App info &amp; version</button>
+    <button type="button" data-tab="json">View JSON</button>
+  </div></div>
+
+  <!-- SYLLABUS TAB -->
+  <section id="tab-syllabus">
+    <div class="card">
+      <div class="subhead">2. Pick a class and subject</div>
+      <div class="row">
+        <div><label>Class</label><select id="classSelect"></select></div>
+        <div><label>Subject</label><select id="subjectSelect"></select></div>
+      </div>
+      <div id="classInfo"></div>
+      <div class="row">
+        <div><label>Class title</label><input type="text" id="classTitle"></div>
+        <div><label>Class subtitle (Urdu, shown on home)</label><input type="text" id="classSubtitle" class="ur"></div>
+      </div>
+      <label>Class status line</label>
+      <input type="text" id="classStatus">
+      <div class="row">
+        <div><label>Status type</label>
+          <select id="classStatusType"><option value="official">official</option><option value="pending">pending</option></select>
+        </div>
+        <div><label>Class colour</label><input type="text" id="classColor" placeholder="#0B6B3A"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="subhead">Subject details</div>
+      <div id="subjectMeta"></div>
+      <div class="row">
+        <div><label>Subject ID (do not change unless you know why)</label><input type="text" id="subId"></div>
+        <div><label>Icon (emoji)</label><input type="text" id="subIcon"></div>
+      </div>
+      <div class="row">
+        <div><label>Name (English)</label><input type="text" id="subName"></div>
+        <div><label>Name in Urdu (optional)</label><input type="text" id="subNameUr" class="ur"></div>
+      </div>
+      <div class="row">
+        <div><label>Total marks</label><input type="number" id="subTotal" min="0"></div>
+        <div><label>Objective marks</label><input type="number" id="subObj" min="0"></div>
+        <div><label>Subjective marks</label><input type="number" id="subSubj" min="0"></div>
+        <div><label>Time, e.g. 2 hours 30 min</label><input type="text" id="subTime"></div>
+      </div>
+      <label>Summary (English)</label>
+      <textarea id="subSummary"></textarea>
+      <label>Summary in Urdu (optional, for the 10 Urdu subjects)</label>
+      <textarea id="subSummaryUr" class="ur"></textarea>
+      <label>Pairing scheme (English, one long text)</label>
+      <textarea id="subPairing" class="tall"></textarea>
+      <label>Pairing scheme in Urdu (optional)</label>
+      <textarea id="subPairingUr" class="tall ur"></textarea>
+      <label>Deleted topics (English) — one topic per line</label>
+      <textarea id="subDeleted" class="tall"></textarea>
+      <label>Deleted topics in Urdu (optional) — one per line</label>
+      <textarea id="subDeletedUr" class="tall ur"></textarea>
+      <label>Instructions (English) — one per line</label>
+      <textarea id="subInstructions" class="tall"></textarea>
+      <label>Instructions in Urdu (optional) — one per line</label>
+      <textarea id="subInstructionsUr" class="tall ur"></textarea>
+      <div class="row">
+        <div><label>Language (leave empty, or "ur" for Urdu-medium subjects)</label><input type="text" id="subLang" placeholder=""></div>
+        <div><label>Subject colour</label><input type="text" id="subColor" placeholder="#0B6B3A"></div>
+      </div>
+      <button class="btn btn-green" type="button" id="applySubjectBtn">Apply these subject changes</button>
+      <div class="row">
+        <button class="btn btn-outline btn-small" type="button" id="addSubjectBtn">+ Add new subject to this class</button>
+        <button class="btn btn-danger btn-small" type="button" id="delSubjectBtn">Delete this subject</button>
+      </div>
+      <p class="hint">Tip: “Apply” only updates the file in this page. Nothing is sent to GitHub until you press <b>Save to GitHub</b> at the bottom.</p>
+    </div>
+  </section>
+
+  <!-- UPDATES TAB -->
+  <section id="tab-updates" class="hidden">
+    <div class="card">
+      <div class="subhead">Important Updates — اہم اپڈیٹس</div>
+      <p class="muted" style="margin-top:0">Newest first. Add a new update at the top and it will show first in the app.</p>
+      <button class="btn btn-green" type="button" id="addUpdateBtn">+ Add new update at the top</button>
+      <div id="updatesList"></div>
+    </div>
+  </section>
+
+  <!-- META TAB -->
+  <section id="tab-meta" class="hidden">
+    <div class="card">
+      <div class="subhead">App info &amp; version</div>
+      <p class="hint">Bump the version every time you save, so the app knows the file changed.</p>
+      <div class="row">
+        <div><label>Data version</label><input type="text" id="metaVersion"></div>
+        <div><label>&nbsp;</label><button class="btn btn-outline" type="button" id="bumpBtn">Bump version +0.1</button></div>
+      </div>
+      <div class="row">
+        <div><label>Last updated (YYYY-MM-DD)</label><input type="text" id="metaUpdated"></div>
+        <div><label>&nbsp;</label><button class="btn btn-outline" type="button" id="todayBtn">Set to today</button></div>
+      </div>
+      <label>Title</label><input type="text" id="metaTitle">
+      <label>Session</label><input type="text" id="metaSession">
+      <label>Exam</label><input type="text" id="metaExam">
+      <label>Authority</label><input type="text" id="metaAuthority">
+      <label>Source</label><input type="text" id="metaSource">
+      <label>Note (shown in the app About section)</label><textarea id="metaNote" class="tall"></textarea>
+      <label>Notification 9</label><input type="text" id="metaN9">
+      <label>Notification 9b (Grade 9 CS &amp; General Science)</label><input type="text" id="metaN9b">
+      <label>Notification 10</label><input type="text" id="metaN10">
+      <label>Notification 11</label><input type="text" id="metaN11">
+      <label>Notification 12</label><input type="text" id="metaN12">
+      <button class="btn btn-green" type="button" id="applyMetaBtn">Apply these info changes</button>
+    </div>
+    <div class="card">
+      <div class="subhead">How to update (shown inside the file only)</div>
+      <label>Instructions — one per line</label>
+      <textarea id="howTo" class="tall"></textarea>
+      <button class="btn btn-green" type="button" id="applyHowToBtn">Apply</button>
+    </div>
+  </section>
+
+  <!-- JSON TAB -->
+  <section id="tab-json" class="hidden">
+    <div class="card">
+      <div class="subhead">View the full JSON</div>
+      <p class="muted">This is exactly what will be saved. If there is a mistake, the Save button will stop and tell you.</p>
+      <button class="btn btn-outline" type="button" id="refreshJsonBtn">Refresh preview</button>
+      <button class="btn btn-outline" type="button" id="copyJsonBtn">Copy JSON</button>
+      <textarea id="jsonPreview" class="tall" style="min-height:320px;font-family:monospace;font-size:13px" readonly></textarea>
+      <div id="jsonCheck" class="muted"></div>
+    </div>
+  </section>
+</main>
+
+<div class="stickybar"><div class="stickybar-inner">
+  <button class="btn btn-green" type="button" id="saveBtn">Save to GitHub</button>
+  <button class="btn btn-outline" type="button" id="downloadBtn">Download file</button>
+</div></div>
+
+<script>
+"use strict";
+let data = null, fileSha = null, dirty = false;
+const $ = id => document.getElementById(id);
+const hasUrdu = s => /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(s || "");
+function showMsg(text, kind){
+  const el = $("status"); el.textContent = text; el.className = "status " + (kind || "info");
+  el.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+function markDirty(){ dirty = true; document.title = "• ALP Syllabus Editor"; }
+function b64encodeUnicode(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = ""; const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  return btoa(bin);
+}
+function b64decodeUnicode(b64){
+  const bin = atob(b64.replace(/\s/g, ""));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function linesToArr(v){ return (v || "").split("\n").map(s => s.trim()).filter(Boolean); }
+function arrToLines(a){ return (a || []).join("\n"); }
+function num(v, d){ const n = parseInt(v, 10); return isNaN(n) ? (d || 0) : n; }
+function todayStr(){ return new Date().toISOString().slice(0, 10); }
+
+// ---------- settings + token (localStorage only, never in this file) ----------
+const LS = { token: "alp_editor_token", owner: "alp_editor_owner", repo: "alp_editor_repo", branch: "alp_editor_branch", path: "alp_editor_path" };
+function loadSettings(){
+  if (localStorage.getItem(LS.owner)) $("ghOwner").value = localStorage.getItem(LS.owner);
+  if (localStorage.getItem(LS.repo)) $("ghRepo").value = localStorage.getItem(LS.repo);
+  if (localStorage.getItem(LS.branch)) $("ghBranch").value = localStorage.getItem(LS.branch);
+  if (localStorage.getItem(LS.path)) $("ghPath").value = localStorage.getItem(LS.path);
+  if (localStorage.getItem(LS.token)) $("ghToken").value = localStorage.getItem(LS.token);
+}
+function saveSettings(){
+  localStorage.setItem(LS.owner, $("ghOwner").value.trim());
+  localStorage.setItem(LS.repo, $("ghRepo").value.trim());
+  localStorage.setItem(LS.branch, $("ghBranch").value.trim());
+  localStorage.setItem(LS.path, $("ghPath").value.trim());
+  localStorage.setItem(LS.token, $("ghToken").value.trim());
+}
+["ghOwner","ghRepo","ghBranch","ghPath","ghToken"].forEach(id => $(id).addEventListener("change", saveSettings));
+$("showTokenBtn").addEventListener("click", () => {
+  const t = $("ghToken"); const show = t.type === "password";
+  t.type = show ? "text" : "password"; $("showTokenBtn").textContent = show ? "Hide" : "Show";
+});
+
+// ---------- tabs ----------
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  ["syllabus","updates","meta","json"].forEach(t => $("tab-" + t).classList.toggle("hidden", t !== b.dataset.tab));
+  if (b.dataset.tab === "json") refreshJson();
+}));
+
+// ---------- load ----------
+function setData(d, sha, where){
+  data = d;
+  if (!data.meta) data.meta = {};
+  if (!Array.isArray(data.classes)) data.classes = [];
+  if (!Array.isArray(data.updates)) data.updates = [];
+  if (!Array.isArray(data.howToUpdate)) data.howToUpdate = [];
+  fileSha = sha || null; dirty = false; document.title = "ALP Syllabus Editor";
+  renderAll();
+  $("loadedInfo").textContent = "Loaded: version " + (data.meta.dataVersion || "?") + ", " + data.classes.length + " classes, " +
+    data.classes.reduce((n, c) => n + (c.subjects || []).length, 0) + " subjects, " + data.updates.length + " updates. " + (where || "");
+}
+async function loadFromGitHub(){
+  saveSettings();
+  const owner = $("ghOwner").value.trim(), repo = $("ghRepo").value.trim(),
+        branch = $("ghBranch").value.trim(), path = $("ghPath").value.trim(),
+        token = $("ghToken").value.trim();
+  if (!owner || !repo || !path) return showMsg("Fill in owner, repo and file path first.", "err");
+  showMsg("Loading from GitHub, please wait...", "info");
+  try {
+    const headers = { "Accept": "application/vnd.github+json" };
+    if (token) headers["Authorization"] = "Bearer " + token;
+    const res = await fetch("https://api.github.com/repos/" + encodeURIComponent(owner) + "/" + encodeURIComponent(repo) + "/contents/" + encodeURIComponent(path) + "?ref=" + encodeURIComponent(branch), { headers });
+    if (!res.ok) {
+      if (res.status === 404) throw new Error("File not found on GitHub. Check owner, repo, branch and path.");
+      if (res.status === 401) throw new Error("GitHub said the token is wrong or expired (401). Check the token, or leave it empty and use Download instead.");
+      if (res.status === 403) throw new Error("GitHub refused (403). The token may not have access to this repo, or the rate limit was hit. Try again in a minute.");
+      throw new Error("GitHub error " + res.status + ". Try again.");
+    }
+    const j = await res.json();
+    const parsed = JSON.parse(b64decodeUnicode(j.content || ""));
+    setData(parsed, j.sha, "From GitHub (" + branch + ").");
+    showMsg("Loaded version " + (parsed.meta && parsed.meta.dataVersion || "?") + " from GitHub. You can edit now.", "ok");
+  } catch (e) {
+    showMsg("Could not load: " + e.message, "err");
+  }
+}
+$("loadBtn").addEventListener("click", loadFromGitHub);
+$("loadFileBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const parsed = JSON.parse(await f.text()); setData(parsed, null, "From file " + f.name + ". (Save to GitHub will still work if you paste a token.)"); showMsg("Loaded " + f.name + ".", "ok"); }
+  catch (err) { showMsg("That file is not valid JSON: " + err.message, "err"); }
+  e.target.value = "";
+});
+
+// ---------- syllabus tab ----------
+function curClass(){ return data.classes[num($("classSelect").value, 0)] || null; }
+function curSubject(){ const c = curClass(); if (!c) return null; return (c.subjects || [])[num($("subjectSelect").value, 0)] || null; }
+function renderClassSubjectLists(){
+  const prevClass = Math.min(num($("classSelect").value, 0), Math.max(data.classes.length - 1, 0));
+  const prevSubject = num($("subjectSelect").value, 0);
+  const cs = $("classSelect"); cs.innerHTML = "";
+  data.classes.forEach((c, i) => { const o = document.createElement("option"); o.value = i; o.textContent = (c.title || ("Class " + c.id)) + " (" + (c.subjects || []).length + " subjects)"; cs.appendChild(o); });
+  cs.value = String(prevClass);
+  const ss = $("subjectSelect"); ss.innerHTML = "";
+  const c = curClass();
+  (c && c.subjects || []).forEach((s, i) => { const o = document.createElement("option"); o.value = i; o.textContent = (s.nameUr || s.name || s.id); ss.appendChild(o); });
+  ss.value = String(Math.min(prevSubject, Math.max(((c && c.subjects) || []).length - 1, 0)));
+}
+function renderClassForm(){
+  const c = curClass(); if (!c) return;
+  $("classTitle").value = c.title || ""; $("classSubtitle").value = c.subtitle || "";
+  $("classStatus").value = c.status || ""; $("classStatusType").value = c.statusType || "official";
+  $("classColor").value = c.color || "";
+  $("classInfo").innerHTML = '<span class="pill">' + (c.id || "") + '</span>' +
+    '<span class="pill">' + ((c.subjects || []).length) + ' subjects</span>' +
+    ((c.statusType === "official") ? '<span class="pill">OFFICIAL</span>' : '<span class="pill warn">Coming soon</span>');
+}
+function renderSubjectForm(){
+  const s = curSubject(); if (!s) return;
+  $("subId").value = s.id || ""; $("subIcon").value = s.icon || "";
+  $("subName").value = s.name || ""; $("subNameUr").value = s.nameUr || "";
+  $("subTotal").value = s.totalMarks ?? ""; $("subObj").value = s.objective ?? ""; $("subSubj").value = s.subjective ?? "";
+  $("subTime").value = s.time || ""; $("subSummary").value = s.summary || ""; $("subSummaryUr").value = s.summaryUr || "";
+  $("subPairing").value = s.pairing || ""; $("subPairingUr").value = s.pairingUr || "";
+  $("subDeleted").value = arrToLines(s.deleted); $("subDeletedUr").value = arrToLines(s.deletedUr);
+  $("subInstructions").value = arrToLines(s.instructions); $("subInstructionsUr").value = arrToLines(s.instructionsUr);
+  $("subLang").value = s.lang || ""; $("subColor").value = s.color || "";
+  $("subjectMeta").innerHTML = '<span class="pill">' + (s.id || "") + '</span>' +
+    '<span class="pill">' + (s.totalMarks ?? "?") + ' marks</span>' +
+    '<span class="pill">' + ((s.deleted || []).length) + ' deleted topics</span>' +
+    (s.lang === "ur" ? '<span class="pill">Urdu medium</span>' : "");
+}
+function renderAll(){ renderClassSubjectLists(); renderClassForm(); renderSubjectForm(); renderMeta(); renderUpdates(); }
+$("classSelect").addEventListener("change", () => { renderClassSubjectLists(); renderClassForm(); renderSubjectForm(); });
+$("subjectSelect").addEventListener("change", renderSubjectForm);
+["classTitle","classSubtitle","classStatus","classStatusType","classColor"].forEach(id => $(id).addEventListener("input", () => {
+  const c = curClass(); if (!c) return;
+  c.title = $("classTitle").value; c.subtitle = $("classSubtitle").value; c.status = $("classStatus").value;
+  c.statusType = $("classStatusType").value; c.color = $("classColor").value; markDirty();
+}));
+$("applySubjectBtn").addEventListener("click", () => {
+  const s = curSubject(); if (!s) return showMsg("Load the file first.", "err");
+  s.id = $("subId").value.trim() || s.id; s.icon = $("subIcon").value;
+  s.name = $("subName").value.trim(); s.nameUr = $("subNameUr").value.trim();
+  s.totalMarks = num($("subTotal").value, 0); s.objective = num($("subObj").value, 0); s.subjective = num($("subSubj").value, 0);
+  s.time = $("subTime").value.trim(); s.summary = $("subSummary").value.trim(); s.summaryUr = $("subSummaryUr").value.trim();
+  s.pairing = $("subPairing").value.trim(); s.pairingUr = $("subPairingUr").value.trim();
+  s.deleted = linesToArr($("subDeleted").value); s.deletedUr = linesToArr($("subDeletedUr").value);
+  s.instructions = linesToArr($("subInstructions").value); s.instructionsUr = linesToArr($("subInstructionsUr").value);
+  s.lang = $("subLang").value.trim(); s.color = $("subColor").value.trim();
+  // Drop empty optional Urdu fields so the file stays clean like the original
+  ["nameUr","summaryUr","pairingUr","lang"].forEach(k => { if (!s[k]) delete s[k]; });
+  ["deletedUr","instructionsUr"].forEach(k => { if (!s[k] || !s[k].length) delete s[k]; });
+  markDirty(); renderClassSubjectLists(); renderSubjectForm();
+  showMsg("Subject saved in this page: " + (s.name || s.id) + ". Press Save to GitHub at the bottom when you are done.", "ok");
+});
+$("addSubjectBtn").addEventListener("click", () => {
+  const c = curClass(); if (!c) return showMsg("Load the file first.", "err");
+  const id = prompt("New subject ID, e.g. chem9 (letters and numbers only):", "");
+  if (!id) return;
+  if ((c.subjects || []).some(s => s.id === id)) return showMsg("That ID already exists in this class.", "err");
+  const name = prompt("Subject name:", "") || id;
+  c.subjects = c.subjects || [];
+  c.subjects.push({ id: id.trim(), name: name.trim(), color: c.color || "#0B6B3A", icon: "📖", totalMarks: 0, objective: 0, subjective: 0, time: "", summary: "", deleted: [], pairing: "", instructions: [] });
+  markDirty(); renderClassSubjectLists(); $("subjectSelect").value = c.subjects.length - 1; renderSubjectForm();
+  showMsg("New subject added. Fill in its marks, deleted topics and pairing, then Apply.", "ok");
+});
+$("delSubjectBtn").addEventListener("click", () => {
+  const c = curClass(), s = curSubject(); if (!c || !s) return;
+  if (!confirm("Delete subject " + (s.name || s.id) + " from " + (c.title || c.id) + "? This cannot be undone except by reloading from GitHub.")) return;
+  c.subjects = (c.subjects || []).filter(x => x !== s);
+  markDirty(); renderClassSubjectLists(); renderClassForm(); renderSubjectForm();
+  showMsg("Subject deleted in this page. Save to GitHub to make it permanent.", "ok");
+});
+
+// ---------- updates tab ----------
+function renderUpdates(){
+  const box = $("updatesList"); box.innerHTML = "";
+  if (!data) { box.innerHTML = '<p class="muted">Load the file first.</p>'; return; }
+  if (!data.updates.length) box.innerHTML = '<p class="muted">No updates yet. Press “Add new update”.</p>';
+  data.updates.forEach((u, i) => {
+    const d = document.createElement("div"); d.className = "update-card";
+    d.innerHTML =
+      '<div class="subhead">#' + (i + 1) + ' — ' + (u.title || "(no title)") + '</div>' +
+      '<label>Date</label><input type="text" data-f="date" value="' + esc(u.date || "") + '">' +
+      '<label>Title (English)</label><input type="text" data-f="title" value="' + esc(u.title || "") + '">' +
+      '<label>Title in Urdu</label><input type="text" class="ur" data-f="titleUr" value="' + esc(u.titleUr || "") + '">' +
+      '<label>Body (English)</label><textarea data-f="body">' + esc(u.body || "") + '</textarea>' +
+      '<label>Body in Urdu</label><textarea class="ur" data-f="bodyUr">' + esc(u.bodyUr || "") + '</textarea>' +
+      '<button type="button" class="btn btn-green btn-small" data-act="apply">Apply this update</button>' +
+      '<button type="button" class="btn btn-danger btn-small" data-act="del">Delete</button>';
+    d.querySelector('[data-act="apply"]').addEventListener("click", () => {
+      d.querySelectorAll("[data-f]").forEach(inp => { u[inp.dataset.f] = inp.value.trim(); });
+      ["titleUr","bodyUr"].forEach(k => { if (!u[k]) delete u[k]; });
+      markDirty(); renderUpdates(); showMsg("Update applied in this page. Save to GitHub when done.", "ok");
+    });
+    d.querySelector('[data-act="del"]').addEventListener("click", () => {
+      if (!confirm("Delete this update?")) return;
+      data.updates.splice(i, 1); markDirty(); renderUpdates();
+    });
+    box.appendChild(d);
+  });
+}
+function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+$("addUpdateBtn").addEventListener("click", () => {
+  if (!data) return showMsg("Load the file first.", "err");
+  data.updates.unshift({ id: "update-" + todayStr(), date: "14 Nov 2026", title: "", titleUr: "", body: "", bodyUr: "" });
+  markDirty(); renderUpdates(); showMsg("New update added at the top. Fill it in and press Apply on that card.", "ok");
+});
+
+// ---------- meta tab ----------
+function renderMeta(){
+  if (!data) return;
+  const m = data.meta || {};
+  $("metaVersion").value = m.dataVersion || ""; $("metaUpdated").value = m.lastUpdated || "";
+  $("metaTitle").value = m.title || ""; $("metaSession").value = m.session || ""; $("metaExam").value = m.exam || "";
+  $("metaAuthority").value = m.authority || ""; $("metaSource").value = m.source || ""; $("metaNote").value = m.note || "";
+  $("metaN9").value = m.notification9 || ""; $("metaN9b").value = m.notification9b || "";
+  $("metaN10").value = m.notification10 || ""; $("metaN11").value = m.notification11 || ""; $("metaN12").value = m.notification12 || "";
+  $("howTo").value = arrToLines(data.howToUpdate);
+}
+$("bumpBtn").addEventListener("click", () => {
+  const v = ($("metaVersion").value.trim() || "2.0").split(".");
+  const major = num(v[0], 2), minor = num(v[1], 0) + 1;
+  $("metaVersion").value = major + "." + minor; markDirty();
+});
+$("todayBtn").addEventListener("click", () => { $("metaUpdated").value = todayStr(); markDirty(); });
+$("applyMetaBtn").addEventListener("click", () => {
+  if (!data) return showMsg("Load the file first.", "err");
+  const m = data.meta;
+  m.dataVersion = $("metaVersion").value.trim(); m.lastUpdated = $("metaUpdated").value.trim();
+  m.title = $("metaTitle").value.trim(); m.session = $("metaSession").value.trim(); m.exam = $("metaExam").value.trim();
+  m.authority = $("metaAuthority").value.trim(); m.source = $("metaSource").value.trim(); m.note = $("metaNote").value.trim();
+  m.notification9 = $("metaN9").value.trim(); m.notification9b = $("metaN9b").value.trim();
+  m.notification10 = $("metaN10").value.trim(); m.notification11 = $("metaN11").value.trim(); m.notification12 = $("metaN12").value.trim();
+  markDirty(); showMsg("Info applied in this page. Save to GitHub when done.", "ok");
+});
+$("applyHowToBtn").addEventListener("click", () => {
+  if (!data) return showMsg("Load the file first.", "err");
+  data.howToUpdate = linesToArr($("howTo").value); markDirty(); showMsg("Applied.", "ok");
+});
+
+// ---------- JSON preview + validation ----------
+function buildJsonString(){ return JSON.stringify(data, null, 2) + "\n"; }
+function validate(){
+  const problems = [];
+  if (!data || !Array.isArray(data.classes) || !data.classes.length) problems.push("No classes found.");
+  (data.classes || []).forEach(c => {
+    (c.subjects || []).forEach(s => {
+      if (!s.id) problems.push("A subject is missing its ID in " + (c.title || c.id) + ".");
+      if (!s.name) problems.push("Subject " + (s.id || "?") + " has no name.");
+      // Skip "coming soon" subjects: they have a total but no pairing yet, so objective + subjective are both 0 on purpose (e.g. urdu12, pak12).
+      if ((num(s.objective, 0) + num(s.subjective, 0)) > 0 && num(s.objective, 0) + num(s.subjective, 0) !== num(s.totalMarks, 0))
+        problems.push((s.name || s.id) + ": objective (" + (s.objective ?? 0) + ") + subjective (" + (s.subjective ?? 0) + ") is not equal to total (" + (s.totalMarks ?? 0) + ").");
+    });
+  });
+  return problems;
+}
+function refreshJson(){
+  if (!data) { $("jsonPreview").value = ""; $("jsonCheck").textContent = "Load the file first."; return; }
+  $("jsonPreview").value = buildJsonString();
+  const p = validate();
+  $("jsonCheck").textContent = p.length ? "Check before saving:\n• " + p.join("\n• ") : "Looks good: JSON is valid, " + data.classes.length + " classes, " + data.classes.reduce((n, c) => n + (c.subjects || []).length, 0) + " subjects.";
+}
+$("refreshJsonBtn").addEventListener("click", refreshJson);
+$("copyJsonBtn").addEventListener("click", async () => {
+  refreshJson(); try { await navigator.clipboard.writeText($("jsonPreview").value); showMsg("JSON copied.", "ok"); }
+  catch (e) { $("jsonPreview").select(); showMsg("Copy did not work in this browser. Long-press the text to copy it.", "err"); }
+});
+
+// ---------- save + download ----------
+function downloadFile(){
+  if (!data) return showMsg("Load the file first.", "err");
+  const blob = new Blob([buildJsonString()], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "syllabus.json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+$("downloadBtn").addEventListener("click", () => { downloadFile(); showMsg("Downloaded syllabus.json. Upload it to GitHub (replace the old file) and reopen the app, no new APK needed.", "ok"); });
+$("saveBtn").addEventListener("click", async () => {
+  if (!data) return showMsg("Load the file first.", "err");
+  saveSettings();
+  const problems = validate();
+  if (problems.length && !confirm("There are problems:\n• " + problems.join("\n• ") + "\n\nSave anyway?")) return;
+  const token = $("ghToken").value.trim();
+  if (!token) {
+    downloadFile();
+    return showMsg("No token pasted, so the file was downloaded instead. Upload it to GitHub yourself, or paste a token and press Save to GitHub again.", "info");
+  }
+  const owner = $("ghOwner").value.trim(), repo = $("ghRepo").value.trim(),
+        branch = $("ghBranch").value.trim(), path = $("ghPath").value.trim();
+  showMsg("Saving to GitHub, please wait...", "info");
+  try {
+    const res = await fetch("https://api.github.com/repos/" + encodeURIComponent(owner) + "/" + encodeURIComponent(repo) + "/contents/" + encodeURIComponent(path), {
+      method: "PUT",
+      headers: { "Accept": "application/vnd.github+json", "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "Update syllabus.json via editor (v" + (data.meta.dataVersion || "?") + ")", content: b64encodeUnicode(buildJsonString()), sha: fileSha, branch: branch })
+    });
+    if (!res.ok) {
+      if (res.status === 401) throw new Error("Token is wrong or expired (401). Make a new token and paste it again.");
+      if (res.status === 403) throw new Error("GitHub refused (403). The token may not have Contents write permission for this repo.");
+      if (res.status === 409) throw new Error("Someone changed the file on GitHub since you loaded it (409). Press Load from GitHub again, redo your change, then save.");
+      if (res.status === 422 && !fileSha) throw new Error("GitHub needs the file's current version (422). Press Load from GitHub first, then save.");
+      throw new Error("GitHub error " + res.status + ". Try again.");
+    }
+    const j = await res.json();
+    fileSha = j.content && j.content.sha ? j.content.sha : fileSha;
+    dirty = false; document.title = "ALP Syllabus Editor";
+    showMsg("Saved to GitHub. Version " + (data.meta.dataVersion || "?") + " is live. Reopen the ALP app and it will pick up the new syllabus.", "ok");
+  } catch (e) {
+    showMsg("Could not save: " + e.message + " Your changes are still in this page, use Download file as a backup.", "err");
+  }
+});
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+// ---------- start ----------
+loadSettings();
+showMsg("Press “Load from GitHub” to start. It loads your live syllabus.json.", "info");
+</script>
+</body>
+</html>
